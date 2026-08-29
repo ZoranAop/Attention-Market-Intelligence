@@ -157,7 +157,7 @@ def analyze(
         n_chains = len({c.get("chain") for c in candidates if c.get("chain")})
         if len(candidates) > 1:
             notes.append(
-                f"⚠ 检索到 {len(candidates)} 个同名/近似标的（分布在 {n_chains} 条链）——"
+                f"[!] 检索到 {len(candidates)} 个同名/近似标的（分布在 {n_chains} 条链）——"
                 f"默认选取流动性最高的一个。重名混淆是常见陷阱，"
                 f"请用 --chain 或 --contract 精确指定你要分析的那个"
             )
@@ -193,7 +193,7 @@ def analyze(
     if security.available and security.token_symbol and market.base_symbol:
         if security.token_symbol.lower() != market.base_symbol.lower():
             notes.append(
-                f"⚠ 合约真实标识与检索结果不一致：合约读出 "
+                f"[!] 合约真实标识与检索结果不一致：合约读出 "
                 f"「{security.token_name} / {security.token_symbol}」，而交易对显示为 "
                 f"「{market.base_name} / {market.base_symbol}」—— 高度疑似错币/诱饵，请人工复核"
             )
@@ -448,7 +448,7 @@ def analyze_demo(cfg: dict) -> AnalysisResult:
     att_metrics = build_attention_metrics(signals, weights, labels, cfg)
     att_metrics.used_sources = ["wikipedia(demo)", "volume(demo)"]
     att_metrics.note = (
-        "⚠ 演示模式：使用内置合成数据（模拟事件爆发→见顶→指数衰减），不代表任何真实标的"
+        "[!] 演示模式：使用内置合成数据（模拟事件爆发→见顶→指数衰减），不代表任何真实标的"
     )
 
     hl_cfg = cfg.get("halflife", {}) or {}

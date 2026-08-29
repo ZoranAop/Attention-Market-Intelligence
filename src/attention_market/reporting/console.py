@@ -103,7 +103,7 @@ def render_console(result: AnalysisResult, use_color: Optional[bool] = None) -> 
     score_text = f"{gate.score}/100" if gate.score is not None else "—（未验证）"
     add(f"      得分 {score_text}   " + _c(gate.display, gate_color, use_color))
     for f in gate.failed:
-        add(f"      ✗ {f}")
+        add(f"      x {f}")
     for w in gate.warnings:
         add(_c(f"      ! {w}", DIM, use_color))
     add("")
@@ -125,14 +125,14 @@ def render_console(result: AnalysisResult, use_color: Optional[bool] = None) -> 
     add(f"      Level {a.level:.1f}/100" if a.level is not None else "      Level —")
     trend_label = {
         "accelerating_up": "加速聚集",
-        "decelerating_up": "减速上涨 ⚠",
+        "decelerating_up": "减速上涨 [!]",
         "declining": "衰退",
         "flat": "持平",
         "unknown": "未知",
     }.get(a.trend, a.trend)
     add(f"      Growth(1阶) {_fmt_pct(a.growth)}   Momentum(2阶) {_fmt_pct(a.momentum)}   → {trend_label}")
     if a.top_warning:
-        add(_c(f"      ⚠ {a.top_warning}", YELLOW, use_color))
+        add(_c(f"      [!] {a.top_warning}", YELLOW, use_color))
     if a.note:
         add(_c(f"      · {a.note}", DIM, use_color))
     add(f"      信号源：{', '.join(a.used_sources) or '—'}"
@@ -160,8 +160,8 @@ def render_console(result: AnalysisResult, use_color: Optional[bool] = None) -> 
     h = result.halflife
     add(_c("  [H] Attention Half-Life", BOLD, use_color))
     if h.status == "ok" and h.halflife_hours:
-        add(f"      t½ = {h.halflife_hours:.1f} 小时   事件类型：{h.event_class or '—'}"
-            f"   拟合 R²={h.r_squared:.2f}" if h.r_squared is not None else f"      t½ = {h.halflife_hours:.1f} 小时")
+        add(f"      t1/2 = {h.halflife_hours:.1f} 小时   事件类型：{h.event_class or '—'}"
+            f"   R2={h.r_squared:.2f}" if h.r_squared is not None else f"      t1/2 = {h.halflife_hours:.1f} 小时")
     elif h.status == "not_decaying":
         add("      峰值之后仍在上升 —— 尚未进入衰减期")
     elif h.status == "insufficient_data":
@@ -191,4 +191,14 @@ def render_console(result: AnalysisResult, use_color: Optional[bool] = None) -> 
 
 
 def print_report(result: AnalysisResult, use_color: Optional[bool] = None) -> None:
-    print(render_console(result, use_color=use_color))
+    """渲染并输出终端报告，同时处理 Windows GBK 环境的编码问题。"""
+    import codecs
+    _output = render_console(result, use_color=use_color)
+    # Windows GBK 控制台无法显示某些 Unicode 字符（如 ▓、✗、½ 等）。
+    # 用 errors='replace' 替换无法编码的字符，避免 UnicodeEncodeError。
+    try:
+        print(_output)
+    except UnicodeEncodeError:
+        # 降级：把 Unicode 字符替换为 ASCII 近似
+        _safe = codecs.encode(_output, "ascii", "replace").decode("ascii")
+        print(_safe)

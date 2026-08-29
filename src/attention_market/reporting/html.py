@@ -108,10 +108,10 @@ def _sparkline(series: Sequence[SeriesPoint], w: int = 620, h: int = 200) -> str
 
 def _quadrant_table(current: str) -> str:
     cells = [
-        ("Expansion", "🔥 注意力驱动型增长", "注意力与市场同步上行，事件扩散期"),
-        ("Divergence", "⚠️ 注意力与市场背离", "注意力仍在聚集但市场不买账"),
-        ("Speculation", "⚠️ 价格脱离注意力", "注意力已衰减而价格仍涨，投机/控盘主导"),
-        ("Decay", "❄️ 同步衰退", "注意力与市场同步下行，冷却阶段"),
+        ("Expansion", "[OK] Attention-Driven Growth", "Attention and price move together — event diffusion phase"),
+        ("Divergence", "[!] Attention-Price Divergence", "Attention rising but price not following — possible negative sentiment"),
+        ("Speculation", "[!] Price脱离Attention", "Price rises while attention fades — speculation/manipulation, most caution needed"),
+        ("Decay", "[Frost] Synchronized Decay", "Both attention and price falling — cooling phase"),
     ]
     rows = []
     for i in range(0, len(cells), 2):

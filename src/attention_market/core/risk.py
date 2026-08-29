@@ -292,7 +292,7 @@ def score_risk(
 
     # 脱锚状态外层标注
     if depeg_suspect or depeg_status == "suspect":
-        drivers.append("⚠ 脱锚防御已触发：当前风险分不计入脱锚分项，请人工复核池子价格")
+        drivers.append("[!] 脱锚防御已触发：当前风险分不计入脱锚分项，请人工复核池子价格")
 
     # 加权（仅使用实际存在的分项，权重重归一化）
     if not components:

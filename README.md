@@ -3,8 +3,33 @@
 **Attention Market Intelligence · v0.2 通用化版**
 
 > 一个开源的注意力市场分析框架，用于研究注意力如何转化为参与、行为、市场活动、价值与风险。
-> 
+>
 > v0.2 起，框架从「MEME 币专用」升级为「通用金融资产生成式分析框架（UFAM）」——MEME 币降为<strong>众多资产类型中的一个具体案例</strong>，配合稳定币 / L1 / DeFi / 证券 / 未知 5 种画像。
+
+---
+
+## 快速安装与运行
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/ZoranAop/Attention-Market-Intelligence.git
+cd Attention-Market-Intelligence
+
+# 2. 安装依赖（Python 3.9+）
+pip install -r requirements.txt
+# 或开发模式安装（推荐）：
+pip install -e ".[dev]"
+
+# 3. 离线演示（无需网络，立即验证）
+python -m attention_market demo --html demo.html
+
+# 4. 分析真实标的
+python -m attention_market analyze "PEPE"
+python -m attention_market analyze "USDC"        # 自动走稳定币画像
+python -m attention_market analyze "BTC"         # 自动走 L1 画像
+python -m attention_market analyze "UNI"         # 自动走 DeFi 画像
+python -m attention_market analyze "PEPE" --chain ethereum --html report.html
+```
 
 ## 🌟 v0.2 重大更新
 
@@ -32,6 +57,8 @@ v0.2:  analyze → classify_asset → get_profile → 按画像调度 → 风险
 ---
 
 ## 一、完整模型：Event → Attention → Behavior → Market → Risk
+
+> 📌 **GitHub 提示**：Mermaid 流程图在 GitHub 上需使用 [Mermaid Live Editor](https://mermaid.live) 或 [GitHub Mermaid 渲染插件](https://github.blog/changelog/2022-02-10-rendering-mermaid-diagrams-in-issue-pr-comments/) 查看。
 
 ```mermaid
 flowchart TD
@@ -177,7 +204,7 @@ flowchart LR
 β = Δlog(Action) / Δlog(Attention)
 
 β ≥ 0.8   强转化   —— 注意力高效变成行为
-β 0.2~0.8 部分转化 —— 有人在围观，有人在行动
+β ≥ 0.2   部分转化 —— 有人在围观，有人在行动
 β < 0.2   弱转化   —— 注意力停留在外围（看热闹而非想买）
 β < 0     背离     —— 注意力上升而行为下降（叫好不叫座）
 ```
@@ -532,3 +559,43 @@ v0.2 用画像分流后，USDC 自动走脱锚分项，得到"低风险"——�
 ## License
 
 MIT — 见 [LICENSE](LICENSE)。
+
+---
+
+## 常见问题（FAQ）
+
+**Q：为什么 `python -m attention_market demo` 在 Windows 上报错？**
+
+Windows 默认使用 GBK 编码，而终端报告包含 Unicode 字符（如 `✗`、`½`）。框架已内置降级处理：无法编码的字符会替换为 ASCII 近似，不会崩溃。若仍需完整 Unicode，请在 PowerShell 中执行：
+
+```powershell
+$OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001
+python -m attention_market demo
+```
+
+**Q：能否指定自定义画像？**
+
+可以。使用 `register_profile()` API：
+
+```python
+from attention_market.core.registry import register_profile, AssetProfile, AssetKind
+
+register_profile(AssetProfile(
+    kind=AssetKind.DEFI,
+    label="我的 DeFi 协议",
+    risk_weights={"fundamental": 0.40, "gate": 0.20, ...},
+), override=True)
+```
+
+**Q：能否接入付费数据源？**
+
+框架支持所有 Provider 可插拔。付费数据源在 `config/default.yaml` 中通过 `enabled: true` 显式启用，不会自动激活。
+
+**Q：框架对 TRON 链的支持如何？**
+
+GoPlus 不覆盖 TRON（非 EVM），门控标「未验证」。GeckoTerminal OHLCV 历史也不覆盖 TRON。报告会自动降级为快照口径，不会编造数据。
+
+**Q：注意力数据的来源可靠吗？**
+
+所有注意力信号都是**间接代理指标**（Wikipedia 浏览量、Hacker News 搜索量、Reddit 帖子数）。它们可能被刷量、水军或付费推广污染。本框架的定位是诊断与比较工具，而非预测模型。
