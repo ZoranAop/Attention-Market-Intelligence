@@ -1,7 +1,6 @@
 # ---------------------------------------------------------------------------
 # attention-market · Attention → Behavior → Market Intelligence Framework
 # Part of the Attention Market Intelligence project.
-# Generated with WorkBuddy (https://workbuddy.cn)
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 """GeckoTerminal provider —— OHLCV 历史序列（免费、无需 API Key）。

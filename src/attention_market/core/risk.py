@@ -1,7 +1,6 @@
 # ---------------------------------------------------------------------------
 # attention-market · Attention → Behavior → Market Intelligence Framework
 # Part of the Attention Market Intelligence project.
-# Generated with WorkBuddy (https://workbuddy.cn)
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 """Risk：把门控、流动性、估值虚高、换手与注意力衰减合成为一个风险分。

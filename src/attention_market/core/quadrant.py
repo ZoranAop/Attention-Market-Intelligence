@@ -1,7 +1,6 @@
 # ---------------------------------------------------------------------------
 # attention-market · Attention → Behavior → Market Intelligence Framework
 # Part of the Attention Market Intelligence project.
-# Generated with WorkBuddy (https://workbuddy.cn)
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 """Attention × Market 二维状态矩阵（⑤ Market Response）。

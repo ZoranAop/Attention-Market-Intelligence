@@ -1,7 +1,6 @@
 # ---------------------------------------------------------------------------
 # attention-market · Attention → Behavior → Market Intelligence Framework
 # Part of the Attention Market Intelligence project.
-# Generated with WorkBuddy (https://workbuddy.cn)
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 """HTML reporter：生成可保存、可分享的完整分析报告（含序列图）。"""
@@ -346,7 +345,6 @@ def render_html(result: AnalysisResult) -> str:
   attention-market · Attention → Behavior → Market Intelligence Framework（研究用途）<br>
   本工具仅为链上与公开数据的核查分析，<b>不构成任何投资建议</b>。
   我国明确禁止虚拟货币交易炒作，相关代币不受法律保护，参与即自负全部损失。<br>
-  <sub>Generated with WorkBuddy · {escape(result.generated_at or '')}</sub>
 </div>
 
 </div></body></html>'''

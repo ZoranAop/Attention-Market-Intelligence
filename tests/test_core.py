@@ -1,7 +1,6 @@
 # ---------------------------------------------------------------------------
 # attention-market · tests
 # Part of the Attention Market Intelligence project.
-# Generated with WorkBuddy (https://workbuddy.cn)
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 """Unit tests for the pure analysis layer (no network required)."""
