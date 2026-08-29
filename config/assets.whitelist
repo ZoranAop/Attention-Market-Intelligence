@@ -1,0 +1,93 @@
+# ---------------------------------------------------------------------------
+# attention-market · asset whitelist
+# Part of the Attention Market Intelligence project.
+# ---------------------------------------------------------------------------
+# 资产分类白名单（大小写不敏感匹配）。
+# 任何标的的符号命中此处某类，即被 classifiy_asset 归为对应 AssetKind。
+#
+# 注意：白名单是"乐观"判定 —— 未命中时按 MEME（默认案例）处理。
+# 因此"宁可漏判不要错判"是更安全的选择。
+
+stablecoin:
+  - USDT
+  - USDC
+  - DAI
+  - BUSD
+  - TUSD
+  - USDP
+  - GUSD
+  - FRAX
+  - USDD
+  - SUSD
+  - MIM
+  - UST
+  - USDN
+  - FEI
+  - LUSD
+  - SDAI
+  - PYUSD
+  - FDUSD
+  - USDX
+  - OUSD
+  - DOLA
+  - GHO
+  - CRVUSD
+
+l1:
+  - BTC
+  - WBTC
+  - ETH
+  - WETH
+  - SOL
+  - AVAX
+  - MATIC
+  - POL
+  - DOT
+  - ADA
+  - NEAR
+  - ATOM
+  - APT
+  - SUI
+  - SEI
+  - TON
+  - TRX
+  - BNB
+  - WBNB
+  - FTM
+  - ALGO
+  - XLM
+  - XRP
+  - LTC
+  - BCH
+  - ETC
+  - ICP
+  - HBAR
+  - FIL
+  - EOS
+  - XTZ
+  - NEO
+
+defi:
+  - UNI
+  - AAVE
+  - CRV
+  - MKR
+  - SNX
+  - COMP
+  - LDO
+  - RPL
+  - DYDX
+  - GMX
+  - GRT
+  - BAL
+  - SUSHI
+  - YFI
+  - 1INCH
+  - ENS
+  - CVX
+  - FXS
+  - STG
+  - RDNT
+
+# 证券类：RWA 锚定 / 合规证券代币（按需扩展）
+security: []

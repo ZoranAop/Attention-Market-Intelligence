@@ -14,13 +14,19 @@
     与它所声称的 meme 币毫无关系。
 
 门控不通过 ⇒ 后续 A/B/C/D 全部模型不适用。
+
+通用化改造（v0.2）：
+门控按资产类型分流 —— MEME/DeFi/UNKNOWN 走完整合约门控；
+STABLECOIN/L1/SECURITY 返回"不适用但通过"，由该类型专属口径接管。
 """
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
+from .asset import AssetKind
 from .models import GateResult, MarketSnapshot, SecurityInfo
+from .registry import AssetProfile, get_profile
 
 __all__ = ["evaluate_gate"]
 
@@ -54,9 +60,36 @@ def evaluate_gate(
     concentration_threshold: float = 0.30,
     fail_score: int = 50,
     tax_threshold: float = 0.10,
+    asset_kind: Optional[AssetKind] = None,
+    profile: Optional[AssetProfile] = None,
 ) -> GateResult:
-    """从 100 分开始扣分，低于 fail_score 判定「模型不适用」。"""
+    """从 100 分开始扣分，低于 fail_score 判定「模型不适用」。
+
+    通用化（v0.2）：
+      - ``asset_kind`` 或 ``profile`` 指定后，若画像的 ``gate_enabled=False``，
+        则跳过合约门控（返回"通过"，由该类型专属口径接管）。
+      - STABLECOIN/L1/SECURITY 适用此路径。
+      - MEME/DeFi/UNKNOWN 仍走完整合约门控（错币/蜜罐硬性否决仍生效）。
+    """
     penalties = {**DEFAULT_PENALTIES, **(penalties or {})}
+
+    # ----- 通用化新增：按画像分流 -----
+    if profile is None and asset_kind is not None:
+        profile = get_profile(asset_kind)
+
+    if profile is not None and not profile.gate_enabled:
+        # 该类型不需要合约门控（稳定币/L1/证券）
+        return GateResult(
+            score=None,
+            failed=[],
+            warnings=[
+                f"画像 {profile.label} 不启用合约门控（由该类型专属风险口径接管）"
+            ],
+            applicable=True,
+            verified=False,
+            note=f"门控对 {profile.kind.value} 类型不适用，已切换到画像专属口径",
+        )
+
     score = 100
     failed: List[str] = []
     warnings: List[str] = []

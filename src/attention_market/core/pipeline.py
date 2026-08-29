@@ -19,6 +19,7 @@ from typing import Dict, List, Optional, Sequence
 
 from ..providers import dexscreener, geckoterminal, goplus, onchain_activity, web_attention
 from ..utils.normalize import align_series
+from .asset import AssetKind, AssetSignals, classify_asset, load_whitelist
 from .attention import (
     DEFAULT_RANGES,
     build_attention_metrics,
@@ -36,9 +37,20 @@ from .models import (
     SeriesPoint,
 )
 from .quadrant import classify_quadrant
+from .registry import get_profile
 from .risk import score_risk
 
 __all__ = ["analyze", "analyze_demo"]
+
+
+# ---------------------------------------------------------------------------
+# 通用化辅助：资产分类 + 画像解析
+# ---------------------------------------------------------------------------
+
+
+def _resolve_whitelist_path(cfg: dict) -> Optional[str]:
+    """从 cfg 中取白名单文件路径（可被 config 覆盖）。"""
+    return ((cfg or {}).get("assets") or {}).get("whitelist_path")
 
 
 # ---------------------------------------------------------------------------
@@ -153,6 +165,21 @@ def analyze(
         subject = query
         notes.append("未在任何 DEX 检索到该标的 —— 市场侧数据全部缺失，结论不可用于任何判断")
 
+    # ---------------- 1.5 资产分类（通用化 v0.2 新增） ----------------
+    # 在门控之前先判定资产类型，门控与后续风险都按画像分流
+    whitelist = load_whitelist(_resolve_whitelist_path(cfg))
+    asset_signals = AssetSignals(
+        symbol=market.base_symbol,
+        name=market.base_name,
+        chain=market.chain,
+        has_contract=bool(market.base_address),
+        market_cap=market.market_cap,
+        price_usd=market.price_usd,
+    )
+    asset_kind = classify_asset(asset_signals, whitelist)
+    profile = get_profile(asset_kind)
+    notes.append(f"[{asset_kind.value}] {profile.label}")
+
     # ---------------- 2. Gate (model E) ----------------
     sec_status = "no_address"
     if market.base_address:
@@ -178,6 +205,8 @@ def analyze(
         penalties=g_cfg.get("penalties"),
         concentration_threshold=g_cfg.get("concentration_threshold", 0.30),
         fail_score=g_cfg.get("fail_score", 50),
+        asset_kind=asset_kind,
+        profile=profile,
     )
     # 把"拿不到数据"的具体原因说清楚 —— 不同原因的风险含义完全不同
     if not security.available:
@@ -330,7 +359,26 @@ def analyze(
     )
 
     # ---------------- 8. Risk ----------------
-    risk = score_risk(market, gate, att_metrics, quadrant, cfg)
+    # 通用化（v0.2）：稳定币需要发行方/储备核验状态
+    issuer_reserve_status: Optional[str] = None
+    if asset_kind == AssetKind.STABLECOIN:
+        # 占位：实际接入需查询 MakerDAO PSM、USDC 储备报告等
+        # 当前默认 "partial" 以体现"未完全核验"状态
+        issuer_reserve_status = "partial"
+
+    risk = score_risk(
+        market,
+        gate,
+        att_metrics,
+        quadrant,
+        cfg,
+        asset_kind=asset_kind,
+        profile=profile,
+        issuer_reserve_status=issuer_reserve_status,
+    )
+    # 把画像信息写入 RiskResult
+    risk.asset_kind = asset_kind.value
+    risk.profile_label = profile.label
 
     if not gate.applicable:
         notes.append("链上门控未通过 —— 以下注意力结论仅供参考，模型不适用于该标的")
@@ -350,6 +398,8 @@ def analyze(
         notes=notes,
         generated_at=_dt.datetime.now().isoformat(timespec="seconds"),
         candidates=candidates,
+        asset_kind=asset_kind.value,
+        profile_label=profile.label,
     )
 
 
@@ -466,7 +516,20 @@ def analyze_demo(cfg: dict) -> AnalysisResult:
         concentration_threshold=g_cfg.get("concentration_threshold", 0.30),
         fail_score=g_cfg.get("fail_score", 50),
     )
-    risk = score_risk(market, gate, att_metrics, quadrant, cfg)
+    # 通用化（v0.2）：演示默认按 MEME 画像
+    demo_kind = AssetKind.MEME
+    demo_profile = get_profile(demo_kind)
+    risk = score_risk(
+        market,
+        gate,
+        att_metrics,
+        quadrant,
+        cfg,
+        asset_kind=demo_kind,
+        profile=demo_profile,
+    )
+    risk.asset_kind = demo_kind.value
+    risk.profile_label = demo_profile.label
 
     return AnalysisResult(
         query="demo",
@@ -483,6 +546,9 @@ def analyze_demo(cfg: dict) -> AnalysisResult:
         notes=[
             "演示模式：全部数值为合成数据，用于展示完整分析链路与输出格式",
             "市场侧数字刻意对齐一次真实核查样本（池子真钱 $132,130 / 账面市值 $1,862,030 ≈ 14×）以便对照",
+            f"[{demo_kind.value}] {demo_profile.label}",
         ],
         generated_at=_dt.datetime.now().isoformat(timespec="seconds"),
+        asset_kind=demo_kind.value,
+        profile_label=demo_profile.label,
     )

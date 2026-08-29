@@ -200,6 +200,9 @@ class RiskResult:
     level: str = "未知"
     components: Dict[str, float] = field(default_factory=dict)
     drivers: List[str] = field(default_factory=list)
+    # 通用化（v0.2）：标记风险评估所用的资产画像，便于报告展示
+    asset_kind: Optional[str] = None
+    profile_label: Optional[str] = None
 
 
 @dataclass
@@ -221,6 +224,9 @@ class AnalysisResult:
     generated_at: Optional[str] = None
     # 同名候选标的（重名混淆是此类分析最常见的陷阱）
     candidates: List[Dict[str, Any]] = field(default_factory=list)
+    # 通用化（v0.2）：资产类型与画像标签
+    asset_kind: Optional[str] = None
+    profile_label: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a plain dict (used by the JSON reporter)."""
@@ -301,8 +307,12 @@ class AnalysisResult:
                 "level": self.risk.level,
                 "components": self.risk.components,
                 "drivers": self.risk.drivers,
+                "asset_kind": self.risk.asset_kind,
+                "profile_label": self.risk.profile_label,
             },
             "sources": self.sources,
             "notes": self.notes,
             "candidates": self.candidates,
+            "asset_kind": self.asset_kind,
+            "profile_label": self.profile_label,
         }

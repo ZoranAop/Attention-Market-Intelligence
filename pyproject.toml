@@ -4,18 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "attention-market"
-version = "0.1.0"
-description = "Attention Market Intelligence — measure how attention transforms into engagement, behavior, market activity, value and risk."
+version = "0.2.0"
+description = "Attention Market Intelligence — measure how attention transforms into engagement, behavior, market activity, value and risk. v0.2 introduces asset type abstraction (MEME / Stablecoin / L1 / DeFi / Security / Unknown) with profile-driven risk and gate configuration."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "attention-market contributors" }]
-keywords = ["attention", "attention-economy", "market-intelligence", "onchain", "meme", "analytics"]
+keywords = [
+    "attention", "attention-economy", "market-intelligence", "onchain",
+    "meme", "stablecoin", "defi", "l1", "analytics", "risk",
+    "universal-asset-model", "ufam",
+]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Office/Business :: Financial :: Investment",
 ]
 dependencies = [
