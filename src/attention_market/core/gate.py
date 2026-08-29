@@ -86,7 +86,7 @@ def evaluate_gate(
                 f"画像 {profile.label} 不启用合约门控（由该类型专属风险口径接管）"
             ],
             applicable=True,
-            verified=False,
+            verified=True,  # verified=True 表示门控逻辑已处理（skip 而非失败）
             note=f"门控对 {profile.kind.value} 类型不适用，已切换到画像专属口径",
         )
 

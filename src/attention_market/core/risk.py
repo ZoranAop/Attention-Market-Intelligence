@@ -268,7 +268,6 @@ def score_risk(
         # 从价格 24h 变化粗略估计波动率（更精确的实现需要历史 OHLCV）
         vol_b = bands.get("volatility", {"extreme": 0.80, "high": 0.50, "normal": 0.25})
         extreme = float(vol_b.get("extreme", 0.80))
-        high = float(vol_b.get("high", 0.50))
         normal = float(vol_b.get("normal", 0.25))
         if market.price_change_h24 is not None:
             # 24h 变化作为短期波动率代理

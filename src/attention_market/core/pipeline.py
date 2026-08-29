@@ -223,13 +223,11 @@ def analyze(
     tf_pref = (cfg.get("providers", {}).get("geckoterminal", {}) or {}).get("ohlcv_timeframe", "day")
     ohlcv = geckoterminal.fetch_ohlcv(market.chain or "", market.pair_address or "", cfg)
     volume_series: List[SeriesPoint] = []
-    price_series: List[SeriesPoint] = []
     if ohlcv:
         # 日线的最后一根是「当日未走完」的 candle，成交量只有几小时累计值，
         # 会把 Growth/Momentum 严重扭曲（实测出现过 -90% 的假信号）—— 丢弃。
         drop_last = tf_pref == "day"
         volume_series = geckoterminal.ohlcv_to_series(ohlcv, column=5, drop_last=drop_last)
-        price_series = geckoterminal.ohlcv_to_series(ohlcv, column=4, drop_last=drop_last)
         sources.append("GeckoTerminal(OHLCV历史)")
         if drop_last:
             notes.append("已丢弃当日未走完的 K 线（避免 Growth/Momentum 被不完整数据扭曲）")

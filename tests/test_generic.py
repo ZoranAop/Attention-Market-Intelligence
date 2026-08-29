@@ -171,10 +171,13 @@ def test_gate_stablecoin_skips_contract_gate():
     profile = get_profile(AssetKind.STABLECOIN)
     gate = evaluate_gate(sec, market, profile=profile)
     assert gate.applicable is True
-    assert gate.verified is False
+    # verified=True 表示门控逻辑已处理（skip 而非失败），区别于"拿不到数据"的未验证
+    assert gate.verified is True
     # warning 或 note 中应出现"不启用合约门控"或类似提示
     combined = " ".join(gate.warnings) + " " + (gate.note or "")
     assert "不启用合约门控" in combined
+    # display 应明确"不适用"而非"未验证"
+    assert "不适用" in gate.display
 
 
 def test_gate_l1_skips_contract_gate():

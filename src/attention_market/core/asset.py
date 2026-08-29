@@ -75,7 +75,7 @@ class AssetSignals:
         market_cap: Optional[float] = None,
         price_usd: Optional[float] = None,
     ) -> None:
-        self.symbol = (symbol or "").upper() if symbol else ""
+        self.symbol = (symbol or "").strip().upper() if symbol else ""
         self.name = (name or "") if name else ""
         self.chain = (chain or "").lower() if chain else ""
         self.has_contract = has_contract

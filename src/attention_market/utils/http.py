@@ -16,7 +16,7 @@ from typing import Any, Dict, Optional
 
 import requests
 
-DEFAULT_USER_AGENT = "attention-market/0.1 (+research; contact: local)"
+DEFAULT_USER_AGENT = "attention-market/0.2 (+research; contact: local)"
 
 __all__ = ["get_json", "get_text", "DEFAULT_USER_AGENT"]
 
@@ -51,6 +51,10 @@ def get_json(
             last_err = exc
             if attempt < retries:
                 _backoff_sleep(attempt, backoff)
+    # 记录失败原因供调试（上层调用方可通过日志或报告查看）
+    if last_err is not None:
+        import logging
+        logging.getLogger("attention-market").warning(f"HTTP failed after {retries + 1} attempts: {last_err}")
     return None
 
 

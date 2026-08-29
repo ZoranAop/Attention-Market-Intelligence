@@ -187,8 +187,13 @@ class GateResult:
     @property
     def display(self) -> str:
         """给报告用的状态文案。"""
-        if not self.verified:
+        # 画像 gate_enabled=False 时，note 包含"不适用"，优先显示"不适用"
+        if self.note and "不适用" in self.note:
+            return "不适用（该资产类型不启用合约门控）"
+        if not self.verified and not self.applicable:
             return "未验证（缺少链上安全数据 ≠ 通过）"
+        if not self.verified and self.applicable:
+            return "不适用（该资产类型不启用合约门控）"
         return "通过" if self.applicable else "未通过 · 模型不适用"
 
 

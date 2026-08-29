@@ -4,6 +4,12 @@
 # ---------------------------------------------------------------------------
 # 所有阈值均为可调整的研究默认值，不代表任何投资建议。
 
+# ---------------------------- 资产白名单 ----------------------------
+assets:
+  whitelist_path: "config/assets.whitelist"
+  # 白名单按符号匹配（大小写不敏感），未命中则默认 MEME 画像
+  # 可在此覆盖或添加自定义资产类型映射
+
 # ---------------------------- 注意力指数 ----------------------------
 attention:
   # 各信号源权重（会先做 log1p 压缩 + 标准化后再加权）
@@ -134,4 +140,4 @@ providers:
 http:
   retries: 2
   backoff: 0.8
-  user_agent: "attention-market/0.1 (+research; contact: local)"
+  user_agent: "attention-market/0.2 (+research; contact: local)"

@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------
 """Configuration loader.
 
-优先级：--config 指定 > 项目根 config/default.yaml > 内置空配置（全部走代码默认值）
+优先级：--config 指定 > 包内 config/default.yaml > 内置空配置（全部走代码默认值）
 """
 
 from __future__ import annotations
@@ -19,9 +19,10 @@ __all__ = ["default_config_path", "load_config"]
 
 
 def default_config_path() -> str:
-    """项目根目录下的 config/default.yaml（相对本文件上溯三级）。"""
+    """包内 config/default.yaml 的路径（安装后可通过 importlib.resources 访问）。"""
     here = os.path.dirname(os.path.abspath(__file__))
-    return os.path.normpath(os.path.join(here, "..", "..", "..", "config", "default.yaml"))
+    pkg_dir = os.path.normpath(os.path.join(here, "..", "config"))
+    return os.path.join(pkg_dir, "default.yaml")
 
 
 def load_config(path: Optional[str] = None) -> Dict[str, Any]:
