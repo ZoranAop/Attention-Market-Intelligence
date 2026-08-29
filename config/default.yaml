@@ -1,0 +1,138 @@
+# ---------------------------------------------------------------------------
+# attention-market · default configuration
+# Part of the Attention Market Intelligence project.
+# Generated with WorkBuddy (https://workbuddy.cn)
+# ---------------------------------------------------------------------------
+# 所有阈值均为可调整的研究默认值，不代表任何投资建议。
+
+# ---------------------------- 注意力指数 ----------------------------
+attention:
+  # 各信号源权重（会先做 log1p 压缩 + 标准化后再加权）
+  weights:
+    onchain_txns: 0.35      # 场内：24h 交易笔数（最难伪造）
+    onchain_makers: 0.15    # 场内：24h 参与地址数
+    volume: 0.15            # 场内：24h 成交额
+    wikipedia: 0.15         # 场外：Wikipedia 浏览量
+    hackernews: 0.10        # 场外：Hacker News 提及
+    reddit: 0.10            # 场外：Reddit 讨论
+  # 缺失信号的处理：redistribute（权重按比例重分配）/ zero（记 0 分）
+  missing_signal_policy: redistribute
+  # 标准化方法：minmax | zscore | log_minmax
+  normalization: log_minmax
+  # 无历史序列时的兜底：用 24h 快照推算 Level
+  snapshot_fallback: true
+
+# ---------------------------- 动量阈值 ----------------------------
+momentum:
+  # Growth（一阶）与 Momentum（二阶）的计算窗口（按序列点数）
+  growth_window: 1
+  momentum_window: 1
+  # 判定"上升/下降"的阈值（相对变化率）
+  # 注意：Growth 基于各信号自身的变化率加权，注意力日变化通常比价格平缓，
+  # 因此用 2% 而非 5% 作为阈值（更贴合注意力序列的实际波动幅度）。
+  up_threshold: 0.02        # +2%
+  down_threshold: -0.02     # -2%
+
+# ---------------------------- 四象限 ----------------------------
+quadrant:
+  attention_threshold: 0.05   # 注意力增速 ±5% 内视为持平
+  market_threshold: 0.02      # 价格变化 ±2% 内视为持平
+
+# ---------------------------- 半衰期 ----------------------------
+halflife:
+  # 从峰值之后开始拟合指数衰减 A(t) = A_peak * exp(-λ·Δt)
+  min_points_after_peak: 3
+  # 事件类型基准（小时），用于在报告中标注事件量级
+  benchmarks_hours:
+    breaking_news: 6
+    celebrity: 72
+    film: 336          # 14 天
+    brand: 2160        # 90 天
+    tech_trend: 8760   # 365 天
+
+# ---------------------------- 转化率（注意力弹性） ----------------------------
+conversion:
+  # β = Δlog(Action) / Δlog(Attention)
+  # β >= high：强转化；mid ~ high：部分转化；< low：注意力未转化（围观）
+  high: 0.8
+  low: 0.2
+  # log 差分的分母保护（避免 0）
+  epsilon: 1e-9
+
+# ---------------------------- 链上门控 ----------------------------
+gate:
+  # 每项失败扣分（总分 100，扣完为 0）
+  penalties:
+    not_in_dex: 40           # 不在 DEX 交易（可能是错币/诱饵）
+    is_honeypot: 50          # 蜜罐：能买不能卖
+    mintable: 25             # 可无限增发
+    lp_not_locked: 20        # LP 未锁定
+    lp_owner_controlled: 25  # LP 在项目方钱包
+    high_holder_concentration: 15
+    contract_unverified: 10
+  # 持有人集中度阈值（前 10 占比）
+  concentration_threshold: 0.30
+  # 门控总分低于此值 → 判定"模型不适用"
+  fail_score: 50
+
+# ---------------------------- 风险评分 ----------------------------
+risk:
+  weights:
+    gate: 0.30               # 链上门控
+    liquidity_depth: 0.20    # 池子真钱
+    mc_to_liquidity: 0.20    # 市值 / 真实资金 倍数
+    turnover: 0.15           # 换手率（成交量 / 市值）
+    attention_decay: 0.15    # 注意力衰减状态
+  # 单项归一化到 0-100 的分档
+  liquidity_depth_usd:
+    very_low: 50000          # ≤5 万美元 → 满分风险
+    low: 250000
+    ok: 1000000              # ≥100 万美元 → 低风险
+  mc_to_liquidity_ratio:
+    dangerous: 10            # ≥10× → 极高风险
+    caution: 3
+  turnover_ratio:
+    extreme: 3               # 成交量/市值 ≥3× → 热钱博弈
+  # 风险等级分档
+  levels:
+    - { name: "极高", min: 75 }
+    - { name: "高",   min: 55 }
+    - { name: "中",   min: 30 }
+    - { name: "低",   min: 0 }
+
+# ---------------------------- 数据源 ----------------------------
+providers:
+  dexscreener:
+    enabled: true
+    base_url: "https://api.dexscreener.com"
+    timeout: 20
+  geckoterminal:
+    enabled: true
+    base_url: "https://api.geckoterminal.com/api/v2"
+    timeout: 20
+    ohlcv_timeframe: day
+    ohlcv_limit: 60
+  goplus:
+    enabled: true
+    base_url: "https://api.gopluslabs.io/api/v1"
+    timeout: 20
+  wikipedia:
+    enabled: true
+    base_url: "https://wikimedia.org/api/rest_v1"
+    project: "zh.wikipedia.org"
+    days: 14
+    timeout: 20
+  hackernews:
+    enabled: true
+    base_url: "https://hn.algolia.com/api/v1"
+    timeout: 20
+  reddit:
+    enabled: false           # 默认关闭（易限流），可在本地配置中启用
+    base_url: "https://www.reddit.com"
+    timeout: 20
+
+# ---------------------------- 网络 ----------------------------
+http:
+  retries: 2
+  backoff: 0.8
+  user_agent: "attention-market/0.1 (+research; contact: local)"

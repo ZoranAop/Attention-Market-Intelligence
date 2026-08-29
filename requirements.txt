@@ -1,0 +1,4 @@
+# attention-market · runtime dependencies
+# 设计原则：依赖最小化，核心功能零 API Key、零付费服务即可运行。
+requests>=2.28.0
+PyYAML>=6.0

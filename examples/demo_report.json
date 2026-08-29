@@ -1,0 +1,195 @@
+{
+  "query": "demo",
+  "subject": "Attention Demo Asset (DEMO)",
+  "generated_at": "2026-08-29T13:11:11",
+  "market": {
+    "chain": "demo",
+    "dex": "demo",
+    "pair_address": null,
+    "base_symbol": "DEMO",
+    "base_name": "Attention Demo Asset",
+    "base_address": null,
+    "price_usd": 0.00042,
+    "liquidity_usd": 132130.0,
+    "market_cap": 1862030.0,
+    "fdv": null,
+    "volume_h24": 9780000.0,
+    "txns_h24_buys": 4200,
+    "txns_h24_sells": 3100,
+    "makers_h24": 2640,
+    "price_change_h24": 8.0,
+    "mc_to_liquidity": 14.092408991145085,
+    "turnover": 5.252332132135358
+  },
+  "security": {
+    "available": true,
+    "is_honeypot": false,
+    "is_mintable": true,
+    "is_in_dex": true,
+    "is_open_source": false,
+    "lp_locked": null,
+    "lp_owner_controlled": null,
+    "holder_count": 1402,
+    "top_holder_percent": 0.34,
+    "token_name": "Attention Demo Asset",
+    "token_symbol": "DEMO"
+  },
+  "attention": {
+    "level": 20.608031247390777,
+    "growth": -0.1738638999100618,
+    "momentum": -1.1102230246251565e-16,
+    "trend": "declining",
+    "used_sources": [
+      "wikipedia(demo)",
+      "volume(demo)"
+    ],
+    "missing_sources": [],
+    "note": "⚠ 演示模式：使用内置合成数据（模拟事件爆发→见顶→指数衰减），不代表任何真实标的",
+    "series": [
+      {
+        "t": "2026-08-09",
+        "value": 13.928839878591477
+      },
+      {
+        "t": "2026-08-10",
+        "value": 16.480339661790538
+      },
+      {
+        "t": "2026-08-11",
+        "value": 20.154499349597184
+      },
+      {
+        "t": "2026-08-12",
+        "value": 23.828659037403828
+      },
+      {
+        "t": "2026-08-13",
+        "value": 27.502818725210474
+      },
+      {
+        "t": "2026-08-14",
+        "value": 31.176978413017114
+      },
+      {
+        "t": "2026-08-15",
+        "value": 34.85113810082376
+      },
+      {
+        "t": "2026-08-16",
+        "value": 38.52529778863042
+      },
+      {
+        "t": "2026-08-17",
+        "value": 42.199457476437054
+      },
+      {
+        "t": "2026-08-18",
+        "value": 41.97329991467565
+      },
+      {
+        "t": "2026-08-19",
+        "value": 40.0310027631043
+      },
+      {
+        "t": "2026-08-20",
+        "value": 38.08870561153295
+      },
+      {
+        "t": "2026-08-21",
+        "value": 36.1464084599616
+      },
+      {
+        "t": "2026-08-22",
+        "value": 34.204111308390246
+      },
+      {
+        "t": "2026-08-23",
+        "value": 32.261814156818886
+      },
+      {
+        "t": "2026-08-24",
+        "value": 30.319517005247537
+      },
+      {
+        "t": "2026-08-25",
+        "value": 28.377219853676177
+      },
+      {
+        "t": "2026-08-26",
+        "value": 26.43492270210483
+      },
+      {
+        "t": "2026-08-27",
+        "value": 24.49262555053348
+      },
+      {
+        "t": "2026-08-28",
+        "value": 22.550328398962126
+      },
+      {
+        "t": "2026-08-29",
+        "value": 20.608031247390777
+      }
+    ]
+  },
+  "halflife": {
+    "halflife_hours": 66.95420318236641,
+    "decay_constant": 0.010352556637437484,
+    "r_squared": 1.0,
+    "status": "ok",
+    "event_class": "celebrity"
+  },
+  "conversion": {
+    "elasticity": 0.550598767933938,
+    "r_squared": 0.9007203648954283,
+    "interpretation": "部分转化"
+  },
+  "quadrant": {
+    "attention_state": "down",
+    "market_state": "up",
+    "quadrant": "Speculation",
+    "label": "⚠️ 价格脱离注意力",
+    "description": "注意力已衰减而价格仍在上涨，投机或控盘主导，最需警惕"
+  },
+  "gate": {
+    "score": 50,
+    "failed": [
+      "合约可无限增发（mint 权限未放弃）",
+      "合约未开源/未验证",
+      "持有人高度集中（前十大占比过高）"
+    ],
+    "warnings": [
+      "LP 锁仓状态未能核实（应人工在区块浏览器确认）"
+    ],
+    "applicable": true,
+    "note": null
+  },
+  "risk": {
+    "score": 82,
+    "level": "极高",
+    "components": {
+      "gate": 50.0,
+      "liquidity_depth": 91.35473684210527,
+      "mc_to_liquidity": 100.0,
+      "turnover": 100.0,
+      "attention_decay": 90.0
+    },
+    "drivers": [
+      "合约可无限增发（mint 权限未放弃）",
+      "合约未开源/未验证",
+      "持有人高度集中（前十大占比过高）",
+      "市值/真实资金 = 14.1×（账面估值高度虚拟化）",
+      "换手率 5.3×（快进快出的热钱博弈，非沉淀资金）",
+      "注意力已进入衰退期（新增买盘枯竭）",
+      "价格脱离注意力基础（Speculation 象限）"
+    ]
+  },
+  "sources": [
+    "内置合成数据（离线演示）"
+  ],
+  "notes": [
+    "演示模式：全部数值为合成数据，用于展示完整分析链路与输出格式",
+    "市场侧数字刻意对齐一次真实核查样本（池子真钱 $132,130 / 账面市值 $1,862,030 ≈ 14×）以便对照"
+  ],
+  "candidates": []
+}

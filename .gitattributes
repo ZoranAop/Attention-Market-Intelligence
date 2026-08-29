@@ -1,0 +1,7 @@
+# 统一换行符为 LF，避免跨平台的 diff 噪音
+* text=auto eol=lf
+
+# 二进制 / 生成物
+*.png binary
+*.jpg binary
+*.ico binary
