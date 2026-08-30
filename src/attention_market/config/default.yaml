@@ -141,3 +141,62 @@ http:
   retries: 2
   backoff: 0.8
   user_agent: "attention-market/0.2 (+research; contact: local)"
+
+# ---------------------------- v0.3: 4 Axes ----------------------------
+axes:
+  # 各轴默认权重（被 AssetProfile.axis_weights 覆盖时，profile > cfg > 默认）
+  weights:
+    attention: 0.40
+    onchain: 0.40
+    fundamental: 0.10
+    macro: 0.10
+  # 缺失轴的容忍度（unavailable 时只标位、不计入总分）
+  missing_axis_policy: tolerate
+
+# ---------------------------- v0.3: Market Regime ----------------------------
+regime:
+  # 设为 true 以启用 FRED/Coinalyze provider（v0.3.1 接入）
+  enabled: true
+  providers:
+    fred:
+      enabled: false
+      api_key: ""
+    coinalyze:
+      enabled: false
+      api_key: ""
+  # 6 信号权重（RFC §4.1）
+  weights:
+    btc_30d: 0.35
+    dxy_30d: 0.20
+    ust2y_level: 0.075
+    ust2y_chg: 0.075
+    funding: 0.20
+    vix: 0.10
+  # 子分映射（RFC §4.2）
+  risk_bands:
+    btc_30d:      { risk_on_max: 0.25,   neutral: 0.0,    risk_off_min: -0.25 }
+    dxy_30d:      { risk_on_max: -0.03,  neutral: 0.0,    risk_off_min: 0.03 }
+    ust2y_level:  { risk_on_max: 0.03,   neutral: 0.045,  risk_off_min: 0.055 }
+    ust2y_chg:    { risk_on_max: -0.003, neutral: 0.0,    risk_off_min: 0.003 }
+    funding:      { risk_on_max: -0.0002,neutral: 0.0,    risk_off_min: -0.0005 }
+    vix:          { risk_on_max: 12.0,   neutral: 20.0,   risk_off_min: 35.0 }
+
+# ---------------------------- v0.3: Phase 阈值 ----------------------------
+phase:
+  # 指向独立 thresholds 文件（可被 AssetProfile.phase_overrides 覆盖）
+  thresholds_file: "config/phase_thresholds.yaml"
+  # 缺省值（RFC §5.3）：保持与 DEFAULT_PHASE_THRESHOLDS 一致
+  thresholds:
+    stealth:           { level_max: 30.0,  growth_min: 0.0 }
+    expansion:         { level_min: 30.0, level_max: 70.0, growth_min: 0.0, beta_min: 0.5 }
+    late_expansion:    { level_min: 60.0, level_max: 90.0, momentum_max: 0.0, liq_lag_required: true }
+    peak:              { level_min: 80.0, momentum_max: 0.0, divergence_required: true }
+    drawdown:          { level_min: 50.0, level_max: 80.0, growth_max: 0.0, price_min: -0.30, price_max: -0.10, liq_drop_min: -0.20, liq_drop_max: -0.05 }
+    decay:             { level_max: 50.0, half_life_max_h: 24.0 }
+    recovery:          { z_min: 0.0, beta_min: 0.0 }
+    re_accumulation:   { level_min: 40.0, level_max: 65.0, half_life_min_h: 72.0 }
+
+# ---------------------------- v0.3: Divergence 阈值 ----------------------------
+divergence:
+  z_gap_warning: 1.5
+  z_gap_critical: 2.5

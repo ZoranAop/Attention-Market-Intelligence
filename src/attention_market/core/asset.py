@@ -28,7 +28,14 @@ __all__ = [
     "classify_asset",
     "load_whitelist",
     "DEFAULT_WHITELIST",
+    # v0.3 re-export
+    "SignalAxis",
 ]
+
+
+# v0.3: SignalAxis lives in models.py (canonical) but is re-exported here so
+# callers can `from .asset import SignalAxis` without an extra import.
+from .models import SignalAxis  # noqa: E402
 
 
 class AssetKind(str, enum.Enum):

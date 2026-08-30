@@ -39,6 +39,12 @@ from .models import (
 from .quadrant import classify_quadrant
 from .registry import get_profile
 from .risk import score_risk
+# v0.3
+from .axes import compute_axis_readings
+from .divergence import detect_divergence
+from .models import RegimeKind, RegimeReading
+from .phase import classify_phase
+from .regime import RegimeSignal, classify_regime
 
 __all__ = ["analyze", "analyze_demo"]
 
@@ -85,6 +91,82 @@ def _snapshot_level(
         num += w * score
         den += w
     return (num / den) if den > 0 else None
+
+
+def _normalize_price_change(value: Optional[float]) -> Optional[float]:
+    """归一化 24h 涨跌幅到 [-1, 1] 范围。"""
+    if value is None:
+        return None
+    if abs(value) > 1.5:
+        return value / 100.0
+    return value
+
+
+def _compute_regime_or_unknown(cfg: dict) -> RegimeReading:
+    """计算 Market Regime。
+
+    v0.3 默认走「无 provider 信号 → Unknown」路径，因为 FRED/Coinalyze
+    接入在 v0.3.1 后续小版本（RFC §10 / §14 step 10）。这样 pipeline 在
+    没有外部信号时仍能完整跑通，且 Phase 不会做 Regime 强制降级。
+
+    CLI 优先级（RFC §9）：--regime override > 自动检测 > Unknown
+    """
+    try:
+        regime_cfg = (cfg or {}).get("regime", {}) or {}
+        override = (regime_cfg.get("override") or "").lower().strip()
+        if override:
+            try:
+                kind = RegimeKind(override.capitalize() if override != "unknown" else "Unknown")
+            except ValueError:
+                kind = RegimeKind.UNKNOWN
+            return RegimeReading(
+                kind=kind,
+                risk_score=None,
+                confidence=0.0,
+                note=f"manual override via CLI/config: {override}",
+            )
+        signals = {
+            "btc_30d": RegimeSignal("btc_30d", None, available=False),
+            "dxy_30d": RegimeSignal("dxy_30d", None, available=False),
+            "ust2y_level": RegimeSignal("ust2y_level", None, available=False),
+            "ust2y_chg": RegimeSignal("ust2y_chg", None, available=False),
+            "funding": RegimeSignal("funding", None, available=False),
+            "vix": RegimeSignal("vix", None, available=False),
+        }
+        return classify_regime(
+            signals,
+            weights=regime_cfg.get("weights"),
+            bands=regime_cfg.get("risk_bands"),
+        )
+    except Exception:  # noqa: BLE001
+        return RegimeReading(
+            kind=RegimeKind.UNKNOWN,
+            risk_score=None,
+            confidence=0.0,
+            note="regime computation failed",
+        )
+
+
+def _compute_axis_readings(
+    att: AttentionMetrics,
+    market: MarketSnapshot,
+    halflife,
+    conversion,
+    profile,
+    regime: RegimeReading,
+):
+    """统一包装：异常时返回空 dict（保证 pipeline 不中断）。"""
+    try:
+        return compute_axis_readings(
+            attention=att,
+            market=market,
+            halflife=halflife,
+            conversion=conversion,
+            profile=profile,
+            regime=regime,
+        )
+    except Exception:  # noqa: BLE001
+        return {}
 
 
 # ---------------------------------------------------------------------------
@@ -381,6 +463,22 @@ def analyze(
     if not gate.applicable:
         notes.append("链上门控未通过 —— 以下注意力结论仅供参考，模型不适用于该标的")
 
+    # ---------------- 9. v0.3 · Regime / 4 Axes / Divergence / Phase ----------------
+    regime = _compute_regime_or_unknown(cfg)
+    axis_readings = _compute_axis_readings(
+        att_metrics, market, halflife, conversion, profile, regime,
+    )
+    divergences = detect_divergence(axis_readings, market=market)
+    phase = classify_phase(
+        axis_readings,
+        regime,
+        profile,
+        price_change_h24=_normalize_price_change(price_change),
+        liquidity_growth=axis_readings.get("onchain").growth if axis_readings.get("onchain") else None,
+        beta=conversion.elasticity,
+        divergences=divergences,
+    )
+
     return AnalysisResult(
         query=query,
         subject=subject,
@@ -398,6 +496,11 @@ def analyze(
         candidates=candidates,
         asset_kind=asset_kind.value,
         profile_label=profile.label,
+        # v0.3
+        regime=regime,
+        axis_readings=axis_readings,
+        divergences=divergences,
+        phase=phase,
     )
 
 
@@ -549,4 +652,29 @@ def analyze_demo(cfg: dict) -> AnalysisResult:
         generated_at=_dt.datetime.now().isoformat(timespec="seconds"),
         asset_kind=demo_kind.value,
         profile_label=demo_profile.label,
+        # v0.3
+        regime=_compute_regime_or_unknown(cfg),
+        axis_readings=_compute_axis_readings(
+            att_metrics, market, halflife, conversion, demo_profile,
+            regime=_compute_regime_or_unknown(cfg),
+        ),
+        divergences=detect_divergence(
+            _compute_axis_readings(
+                att_metrics, market, halflife, conversion, demo_profile,
+                regime=_compute_regime_or_unknown(cfg),
+            ),
+            market=market,
+        ),
+        phase=classify_phase(
+            _compute_axis_readings(
+                att_metrics, market, halflife, conversion, demo_profile,
+                regime=_compute_regime_or_unknown(cfg),
+            ),
+            _compute_regime_or_unknown(cfg),
+            demo_profile,
+            price_change_h24=0.08,
+            liquidity_growth=None,
+            beta=conversion.elasticity,
+            divergences=[],
+        ),
     )

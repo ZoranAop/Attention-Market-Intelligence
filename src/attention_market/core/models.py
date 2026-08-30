@@ -12,6 +12,7 @@ surfaced as ``unavailable`` in the report.
 
 from __future__ import annotations
 
+import enum
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -26,7 +27,145 @@ __all__ = [
     "GateResult",
     "RiskResult",
     "AnalysisResult",
+    # v0.3 additions
+    "SignalAxis",
+    "RegimeKind",
+    "AxisReading",
+    "DivergenceSignal",
+    "PhaseTag",
+    "RegimeReading",
 ]
+
+
+# ---------------------------------------------------------------------------
+# v0.3 additions · SignalAxis / RegimeKind / AxisReading / DivergenceSignal / PhaseTag
+# ---------------------------------------------------------------------------
+
+
+class SignalAxis(str, enum.Enum):
+    """Four canonical signal axes introduced in v0.3.
+
+    Replaces (does NOT remove) the flat ``AssetProfile.signals`` dictionary:
+    each legacy key is internally mapped to one of these axes so v0.2 callers
+    and tests keep working unchanged.
+    """
+
+    ATTENTION = "attention"
+    ONCHAIN = "onchain"
+    FUNDAMENTAL = "fundamental"
+    MACRO = "macro"
+
+
+class RegimeKind(str, enum.Enum):
+    """Market regime classification (RFC v0.3 §4)."""
+
+    BULL = "Bull"
+    RANGE = "Range"
+    BEAR = "Bear"
+    CRISIS = "Crisis"
+    UNKNOWN = "Unknown"
+
+
+@dataclass
+class AxisReading:
+    """Reading on one of the four canonical axes (RFC v0.3 §2.2).
+
+    All numeric fields are optional — the framework never fabricates data.
+    A reading with ``unavailable=True`` carries ``reason`` explaining why.
+    """
+
+    axis: SignalAxis
+    level: Optional[float] = None             # 0-100
+    growth: Optional[float] = None            # 1st derivative (window-configurable)
+    momentum: Optional[float] = None          # 2nd derivative
+    half_life_h: Optional[float] = None       # meaningful only for ATTENTION
+    z_score: Optional[float] = None           # relative to own rolling window
+    unavailable: bool = False
+    reason: str = ""
+    source_breakdown: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "axis": self.axis.value,
+            "level": self.level,
+            "growth": self.growth,
+            "momentum": self.momentum,
+            "half_life_h": self.half_life_h,
+            "z_score": self.z_score,
+            "unavailable": self.unavailable,
+            "reason": self.reason,
+        }
+
+
+@dataclass
+class DivergenceSignal:
+    """Cross-axis z-score divergence (RFC v0.3 §2.3, §6)."""
+
+    name: str                                 # e.g. "Attention > Liquidity"
+    leading_axis: str                         # SignalAxis.value
+    lagging_axis: str
+    z_gap: float                              # z_leading - z_lagging
+    severity: str                             # "info" | "warning" | "critical"
+    description: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "leading_axis": self.leading_axis,
+            "lagging_axis": self.lagging_axis,
+            "z_gap": self.z_gap,
+            "severity": self.severity,
+            "description": self.description,
+        }
+
+
+@dataclass
+class PhaseTag:
+    """Lifecycle phase (RFC v0.3 §2.4, §5).
+
+    ``primary`` is one of 8 stage labels, or "Unknown" if no rule fires.
+    ``regime_downgrade_applied`` flags that a Bear/Crisis forced Late Expansion
+    to become Peak (or Bull forced Drawdown to become Decay).
+    """
+
+    primary: str = "Unknown"
+    confidence: float = 0.0
+    rule_chain: List[str] = field(default_factory=list)
+    regime_downgrade_applied: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "primary": self.primary,
+            "confidence": self.confidence,
+            "rule_chain": list(self.rule_chain),
+            "regime_downgrade_applied": self.regime_downgrade_applied,
+        }
+
+
+@dataclass
+class RegimeReading:
+    """Market regime snapshot (RFC v0.3 §4).
+
+    ``confidence`` is 1.0 when all 6 inputs are available, scaled by availability.
+    Use ``UNKNOWN`` when fewer than 2 inputs are usable.
+    """
+
+    kind: RegimeKind = RegimeKind.UNKNOWN
+    risk_score: Optional[float] = None        # 0-100, higher = more risk-off
+    confidence: float = 0.0
+    available_signals: List[str] = field(default_factory=list)
+    missing_signals: List[str] = field(default_factory=list)
+    note: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "kind": self.kind.value,
+            "risk_score": self.risk_score,
+            "confidence": self.confidence,
+            "available_signals": list(self.available_signals),
+            "missing_signals": list(self.missing_signals),
+            "note": self.note,
+        }
 
 
 @dataclass
@@ -232,6 +371,11 @@ class AnalysisResult:
     # 通用化（v0.2）：资产类型与画像标签
     asset_kind: Optional[str] = None
     profile_label: Optional[str] = None
+    # v0.3：Digital Asset Intelligence 层
+    regime: RegimeReading = field(default_factory=RegimeReading)
+    axis_readings: Dict[str, AxisReading] = field(default_factory=dict)
+    divergences: List[DivergenceSignal] = field(default_factory=list)
+    phase: PhaseTag = field(default_factory=PhaseTag)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a plain dict (used by the JSON reporter)."""
@@ -320,4 +464,11 @@ class AnalysisResult:
             "candidates": self.candidates,
             "asset_kind": self.asset_kind,
             "profile_label": self.profile_label,
+            # v0.3: Digital Asset Intelligence layer
+            "regime": self.regime.to_dict(),
+            "axis_readings": {
+                k: v.to_dict() for k, v in self.axis_readings.items()
+            },
+            "divergences": [d.to_dict() for d in self.divergences],
+            "phase": self.phase.to_dict(),
         }

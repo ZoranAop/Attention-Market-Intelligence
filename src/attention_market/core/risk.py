@@ -123,6 +123,9 @@ def score_risk(
     profile: Optional[AssetProfile] = None,
     depeg_status: Optional[str] = None,
     issuer_reserve_status: Optional[str] = None,
+    *,
+    axis_readings: Optional[dict] = None,
+    regime: Optional[object] = None,
 ) -> RiskResult:
     """综合风险评分（0-100，越高越危险）。
 
@@ -292,6 +295,21 @@ def score_risk(
     # 脱锚状态外层标注
     if depeg_suspect or depeg_status == "suspect":
         drivers.append("[!] 脱锚防御已触发：当前风险分不计入脱锚分项，请人工复核池子价格")
+
+    # v0.3：若 pipeline 传入了 axis_readings / regime，把可用的 macro/fundamental
+    # 风险信号以"driver"形式注入（不强制改 score，避免破坏 v0.2 测试）。
+    if axis_readings:
+        try:
+            from .asset import SignalAxis
+            macro = axis_readings.get(SignalAxis.MACRO.value)
+            fund = axis_readings.get(SignalAxis.FUNDAMENTAL.value)
+            if macro and not getattr(macro, "unavailable", True):
+                if regime is not None and getattr(regime, "kind", None) is not None:
+                    drivers.append(f"[v0.3] Macro regime = {regime.kind.value} (risk_score={getattr(regime, 'risk_score', None)})")
+            if fund and not getattr(fund, "unavailable", True):
+                drivers.append(f"[v0.3] Fundamental axis level={fund.level:.1f}" if fund.level is not None else "[v0.3] Fundamental axis data present")
+        except Exception:  # noqa: BLE001
+            pass
 
     # 加权（仅使用实际存在的分项，权重重归一化）
     if not components:

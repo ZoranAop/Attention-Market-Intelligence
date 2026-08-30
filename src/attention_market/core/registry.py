@@ -45,6 +45,12 @@ class AssetProfile:
     risk_bands: Dict[str, Dict[str, float]] = field(default_factory=dict)
     sources: List[str] = field(default_factory=list)
     note: str = ""
+    # v0.3: 4 轴权重与轴必需声明（RFC §3）
+    axis_weights: Dict[str, float] = field(default_factory=dict)
+    required_axes: List[str] = field(default_factory=list)
+    # v0.3: Phase / Regime 阈值覆盖（RFC §3, §5）
+    phase_overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    regime_overrides: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -56,6 +62,10 @@ class AssetProfile:
             "risk_bands": {k: dict(v) for k, v in self.risk_bands.items()},
             "sources": list(self.sources),
             "note": self.note,
+            "axis_weights": dict(self.axis_weights),
+            "required_axes": list(self.required_axes),
+            "phase_overrides": {k: dict(v) for k, v in self.phase_overrides.items()},
+            "regime_overrides": dict(self.regime_overrides),
         }
 
 
@@ -91,6 +101,10 @@ MEME_PROFILE = AssetProfile(
     },
     sources=["dexscreener", "goplus", "geckoterminal", "wikipedia", "hackernews"],
     note="MEME 币：注意力几乎完全定价。门控（错币/蜜罐）+ 流动性 + 市值/池 三大支柱。",
+    axis_weights={                                    # v0.3 (RFC §3.1)
+        "attention": 0.50, "onchain": 0.45, "fundamental": 0.00, "macro": 0.05,
+    },
+    required_axes=["attention", "onchain"],
 )
 
 STABLECOIN_PROFILE = AssetProfile(
@@ -119,6 +133,10 @@ STABLECOIN_PROFILE = AssetProfile(
     },
     sources=["dexscreener", "geckoterminal", "coingecko"],
     note="稳定币：看脱锚价差，不看市值/池（那是稳定币设计的特性，不是失真）。",
+    axis_weights={                                    # v0.3 (RFC §3.1)
+        "attention": 0.20, "onchain": 0.30, "fundamental": 0.10, "macro": 0.40,
+    },
+    required_axes=["macro", "onchain"],
 )
 
 L1_PROFILE = AssetProfile(
@@ -146,6 +164,10 @@ L1_PROFILE = AssetProfile(
     },
     sources=["dexscreener", "geckoterminal", "coingecko", "wikipedia"],
     note="L1：无合约地址，看宏观链上指标（波动率 + 链上交易 + 注意力衰减）。",
+    axis_weights={                                    # v0.3 (RFC §3.1)
+        "attention": 0.20, "onchain": 0.40, "fundamental": 0.20, "macro": 0.20,
+    },
+    required_axes=["onchain", "fundamental"],
 )
 
 DEFI_PROFILE = AssetProfile(
@@ -173,6 +195,10 @@ DEFI_PROFILE = AssetProfile(
     },
     sources=["dexscreener", "goplus", "geckoterminal", "defillama"],
     note="DeFi：注意力 + 基本面（TVL/收入）混合定价，门控 + 基本面双口径。",
+    axis_weights={                                    # v0.3 (RFC §3.1)
+        "attention": 0.25, "onchain": 0.35, "fundamental": 0.35, "macro": 0.05,
+    },
+    required_axes=["fundamental", "onchain"],
 )
 
 SECURITY_PROFILE = AssetProfile(
@@ -193,6 +219,10 @@ SECURITY_PROFILE = AssetProfile(
     risk_bands={},
     sources=["coingecko", "wikipedia", "hackernews"],
     note="证券类：现金流定价为主，基本面估值 + 波动率 + 注意力衰减（占位）。",
+    axis_weights={                                    # v0.3 (RFC §3.1)
+        "attention": 0.20, "onchain": 0.10, "fundamental": 0.50, "macro": 0.20,
+    },
+    required_axes=["fundamental"],
 )
 
 UNKNOWN_PROFILE = AssetProfile(
@@ -208,6 +238,10 @@ UNKNOWN_PROFILE = AssetProfile(
     risk_bands={},
     sources=[],
     note="无法判定类型：默认保守画像，所有结论标注「可靠性下降」。",
+    axis_weights={                                    # v0.3 (RFC §3.1)
+        "attention": 0.40, "onchain": 0.40, "fundamental": 0.10, "macro": 0.10,
+    },
+    required_axes=["attention", "onchain"],
 )
 
 

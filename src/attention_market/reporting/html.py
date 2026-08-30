@@ -196,6 +196,62 @@ def render_html(result: AnalysisResult) -> str:
     else:
         hl_text, hl_sub = "不可用", "缺少时间序列（快照口径）"
 
+    # ---- v0.3: Regime / Axes / Divergence / Phase ----
+    regime = result.regime
+    regime_cls = {
+        "Bull": "ok", "Range": "", "Bear": "warn", "Crisis": "danger", "Unknown": "muted",
+    }.get(regime.kind.value, "muted")
+
+    axis_rows_parts: list[str] = []
+    for k in ("attention", "onchain", "fundamental", "macro"):
+        ar = result.axis_readings.get(k)
+        if ar is None:
+            continue
+        if ar.unavailable:
+            axis_rows_parts.append(
+                f"<tr><td><b>{escape(k)}</b></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>"
+                f"<td class='muted'>unavailable: {escape(ar.reason or '—')}</td></tr>"
+            )
+        else:
+            axis_rows_parts.append(
+                f"<tr><td><b>{escape(k)}</b></td>"
+                f"<td>{(f'{ar.level:.1f}' if ar.level is not None else '—')}</td>"
+                f"<td>{_pct(ar.growth)}</td>"
+                f"<td>{_pct(ar.momentum) if ar.momentum is not None else '—'}</td>"
+                f"<td>{(f'{ar.z_score:+.2f}' if ar.z_score is not None else '—')}</td>"
+                f"<td>{(f'{ar.half_life_h:.1f}h' if ar.half_life_h is not None else '—')}</td>"
+                f"<td class='ok'>ok</td></tr>"
+            )
+    axis_rows = "".join(axis_rows_parts) or "<tr><td colspan='7' class='muted'>无可用轴读数</td></tr>"
+
+    if result.divergences:
+        div_items = []
+        for d in result.divergences:
+            sev_cls = {"critical": "danger", "warning": "warn", "info": "muted"}.get(d.severity, "muted")
+            div_items.append(
+                f"<li><span class='badge {sev_cls}'>{escape(d.severity)}</span> "
+                f"<b>{escape(d.name)}</b> · z_gap={d.z_gap:+.2f} · {escape(d.description)}</li>"
+            )
+        div_html = "<ul>" + "".join(div_items) + "</ul>"
+    else:
+        div_html = "<p class='muted'>未检测到跨轴背离</p>"
+
+    p = result.phase
+    phase_cls = {
+        "Peak": "danger",
+        "Late Expansion": "warn",
+        "Drawdown": "warn",
+        "Expansion": "ok",
+        "Recovery": "ok",
+        "Re-accumulation": "ok",
+        "Stealth": "",
+        "Decay": "muted",
+    }.get(p.primary, "muted")
+    downgrade_html = "<span class='badge warn'>regime_downgrade</span>" if p.regime_downgrade_applied else ""
+    rule_html = ""
+    if p.rule_chain:
+        rule_html = "<p class='muted' style='font-size:13px'>命中规则链：<br>" + "<br>".join(escape(r) for r in p.rule_chain) + "</p>"
+
     return f'''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -326,6 +382,40 @@ def render_html(result: AnalysisResult) -> str:
 
 <h2>风险驱动项</h2>
 <div class="card"><ul>{''.join(f'<li>{escape(d)}</li>' for d in r.drivers)}</ul></div>
+
+<h2>v0.3 · Market Regime</h2>
+<div class="card">
+  <p>Regime: <b class="{regime_cls}">{escape(regime.kind.value)}</b>
+     · risk_score = {regime.risk_score if regime.risk_score is not None else '—'}
+     · confidence = {regime.confidence:.2f}</p>
+  <p class="muted" style="font-size:13px">
+    可用信号 ({len(regime.available_signals)}/6)：{escape(', '.join(regime.available_signals) or '—')}
+    {('　缺失：' + escape(', '.join(regime.missing_signals))) if regime.missing_signals else ''}
+  </p>
+  {f'<p class="muted" style="font-size:13px">{escape(regime.note)}</p>' if regime.note else ''}
+</div>
+
+<h2>v0.3 · 4-Axis Readings</h2>
+<div class="card">
+  <table>
+    <tr><th>轴</th><th>Level</th><th>Growth</th><th>Momentum</th><th>Z-score</th><th>Half-Life</th><th>状态</th></tr>
+    {axis_rows}
+  </table>
+</div>
+
+<h2>v0.3 · Divergence（跨轴背离）</h2>
+<div class="card">
+  {div_html}
+</div>
+
+<h2>v0.3 · Phase（生命周期阶段）</h2>
+<div class="card">
+  <p>阶段：<b class="{phase_cls}">{escape(p.primary)}</b>
+     · 置信度 <b>{p.confidence:.2f}</b>
+     {downgrade_html}
+  </p>
+  {rule_html}
+</div>
 
 {f'<h2>备注</h2><div class="card"><ul>{note_rows}</ul></div>' if note_rows else ''}
 

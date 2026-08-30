@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# attention-market · v0.3 phase thresholds (override)
+# Part of the Attention Market Intelligence project.
+# ---------------------------------------------------------------------------
+# 覆盖 DEFAULT_PHASE_THRESHOLDS 的可调阈值表（RFC v0.3 §5）。
+# 仅在 config/default.yaml 的 phase.thresholds 不够灵活时使用本文件。
+# AssetProfile.phase_overrides 的优先级最高（profile > 此文件 > config > 代码默认）。
+
+stages:
+  stealth:
+    level_max: 30.0
+    growth_min: 0.0
+  expansion:
+    level_min: 30.0
+    level_max: 70.0
+    growth_min: 0.0
+    beta_min: 0.5
+  late_expansion:
+    level_min: 60.0
+    level_max: 90.0
+    momentum_max: 0.0
+    liq_lag_required: true
+  peak:
+    level_min: 80.0
+    momentum_max: 0.0
+    divergence_required: true
+  drawdown:
+    level_min: 50.0
+    level_max: 80.0
+    growth_max: 0.0
+    price_min: -0.30
+    price_max: -0.10
+    liq_drop_min: -0.20
+    liq_drop_max: -0.05
+  decay:
+    level_max: 50.0
+    half_life_max_h: 24.0
+  recovery:
+    z_min: 0.0
+    beta_min: 0.0
+  re_accumulation:
+    level_min: 40.0
+    level_max: 65.0
+    half_life_min_h: 72.0

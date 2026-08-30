@@ -179,6 +179,59 @@ def render_console(result: AnalysisResult, use_color: Optional[bool] = None) -> 
         add(f"      · {d}")
     add("")
 
+    # --- v0.3: T (Tag: Asset / Profile / Regime) ---
+    regime = result.regime
+    regime_color = {
+        "Bull": GREEN, "Range": CYAN, "Bear": YELLOW, "Crisis": RED, "Unknown": DIM,
+    }.get(regime.kind.value, DIM)
+    add(_c("  [T] Asset / Profile / Regime", BOLD, use_color))
+    add(f"      Asset: {result.subject}   Profile: {_c(result.profile_label or '—', CYAN, use_color)}")
+    add(f"      Regime: {_c(regime.kind.value, regime_color, use_color)}"
+        + (f"   risk_score={regime.risk_score:.0f}" if regime.risk_score is not None else ""))
+    add("")
+
+    # --- v0.3: Axis Readings (4 axes) ---
+    if result.axis_readings:
+        add(_c("  [Axis] 4-Axis Readings", BOLD, use_color))
+        axis_order = ["attention", "onchain", "fundamental", "macro"]
+        for k in axis_order:
+            ar = result.axis_readings.get(k)
+            if ar is None:
+                continue
+            tag = f"{k:11s}"
+            if ar.unavailable:
+                add(f"      {tag} {_c('unavailable', DIM, use_color)}   {_c(ar.reason or '—', DIM, use_color)}")
+            else:
+                level = f"{ar.level:5.1f}" if ar.level is not None else "   — "
+                growth = _fmt_pct(ar.growth)
+                mom = _fmt_pct(ar.momentum) if ar.momentum is not None else "   —  "
+                z = f"{ar.z_score:+.2f}" if ar.z_score is not None else "  — "
+                hl = f"t½={ar.half_life_h:.0f}h" if ar.half_life_h is not None else ""
+                add(f"      {tag} L={level}  g={growth}  m={mom}  z={z}  {hl}")
+        add("")
+
+    # --- v0.3: D Divergence ---
+    if result.divergences:
+        add(_c("  [D] Divergence（跨轴背离）", BOLD, use_color))
+        for d in result.divergences[:5]:
+            sev_color = {"critical": RED, "warning": YELLOW, "info": DIM}.get(d.severity, DIM)
+            tag = _c(f"[{d.severity}]", sev_color, use_color)
+            add(f"      {tag} {d.name}   z_gap={d.z_gap:+.2f}   {_c(d.description, DIM, use_color)}")
+        add("")
+
+    # --- v0.3: P Phase ---
+    p = result.phase
+    if p.primary != "Unknown":
+        add(_c("  [P] Phase", BOLD, use_color))
+        phase_color = RED if p.primary in ("Peak",) else (
+            YELLOW if p.primary in ("Late Expansion", "Drawdown") else (
+                GREEN if p.primary in ("Expansion", "Recovery", "Re-accumulation") else CYAN))
+        down_tag = _c(" [regime_downgrade]", YELLOW, use_color) if p.regime_downgrade_applied else ""
+        add(f"      阶段：{_c(p.primary, phase_color, use_color)}   置信度 {p.confidence:.2f}{down_tag}")
+        for rule in p.rule_chain[:5]:
+            add(_c(f"        · {rule}", DIM, use_color))
+        add("")
+
     # --- sources & notes ---
     if result.sources:
         add(_c("  数据来源：" + "、".join(result.sources), DIM, use_color))
