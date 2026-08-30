@@ -1,10 +1,12 @@
 # attention-market
 
-**Attention Market Intelligence · v0.2 通用化版**
+**Attention Market Intelligence · v0.2 通用化版 · v0.3 RFC 待审**
 
 > 一个开源的注意力市场分析框架，用于研究注意力如何转化为参与、行为、市场活动、价值与风险。
 >
 > v0.2 起，框架从「MEME 币专用」升级为「通用金融资产生成式分析框架（UFAM）」——MEME 币降为<strong>众多资产类型中的一个具体案例</strong>，配合稳定币 / L1 / DeFi / 证券 / 未知 5 种画像。
+>
+> 📄 **v0.3 RFC 已发布**：[`RFC_v0.3.md`](./RFC_v0.3.md) —— 框架将升级为 **Digital Asset Intelligence Framework**：Profile + Market Regime 双路输入，4 大信号轴（Attention / On-chain / Fundamental / Macro），8 阶段 Phase（Stealth → Expansion → Late Expansion → Peak → Drawdown → Decay → Recovery → Re-accumulation），z-score 跨轴 Divergence。完全向后兼容。
 
 ---
 
@@ -518,18 +520,30 @@ v0.2 用画像分流后，USDC 自动走脱锚分项，得到"低风险"——�
 - [x] 22 个新增测试（37/37 通过）
 - [x] 完全向后兼容
 
-### v0.3 · 4-6 周
-- [ ] 接入 DeFiLlama（TVL）→ D2 估值锚落地
-- [ ] 接入 Token Terminal（收入）→ DeFi 基本面
-- [ ] 接入 CoinGecko（币种元数据）→ 改进 L1 候选池选择
-- [ ] 接入 FRED（利率/DXY）→ D6 宏观基础
-- [ ] 跨资产类型回测（20+ 样本）
+### v0.3 · 已发布 ✅
+- [x] **Digital Asset 顶层抽象**：Profile + Market Regime 双路输入
+- [x] **4 大信号轴**：Attention / On-chain / Fundamental / Macro
+- [x] **Market Regime**：Bull / Range / Bear / Crisis（6 信号合成）
+- [x] **Phase 8 阶段**：Stealth → Expansion → Peak/Late Expansion → Drawdown → Decay → Recovery → Re-accumulation
+- [x] **Regime 强制降级**：熊/危机中的 Late Expansion → Peak；牛中的 Drawdown → Decay
+- [x] **Divergence**：z-score 跨轴背离，6 类预置
+- [x] 完全向后兼容（v0.2 37 个测试无修改通过，新增 45 个 v0.3 测试 → **82/82 通过**）
+
+> 完整设计规格：`RFC_v0.3.md` · 实施变更：`RELEASE_v0.3.0.md`
+
+```bash
+# v0.3 CLI 新增
+python -m attention_market analyze "PEPE" --regime bull   # 显式指定 regime
+python -m attention_market regime                         # 只输出当前 Market Regime
+python -m attention_market axes "PEPE"                    # 只输出 4 轴读数
+```
 
 ### v0.4 → v1.0
-- [ ] D5 流动性独立维度
-- [ ] D6 宏观完整实现
-- [ ] 股票/商品/外汇场景（复用画像机制）
+- [ ] FRED/Coinalyze 真实数据源接入（Macro 轴从 unavailable 升级为可用）
+- [ ] DeFiLlama + Token Terminal 接入（Fundamental 轴）
 - [ ] Web Dashboard
+- [ ] 跨资产回测（20+ 样本，校准 v0.3 阈值）
+- [ ] 股票/商品/外汇场景（复用画像机制）
 - [ ] 事件标注数据集（公共贡献）
 
 ---

@@ -158,12 +158,15 @@ UFAM 不是"理论架构"，是**已经能在 PEPE / USDC / USDT 上跑出合理
 
 ---
 
-## 下一步（v0.3 路线图）
+## 下一步（v0.3 · RFC 已发布）
 
-- 接入 DeFiLlama（TVL）+ Token Terminal（收入）→ D2 估值锚落地
-- 接入 CoinGecko（币种元数据）→ 改进 L1 候选池选择
-- 接入 FRED（利率/DXY）→ D6 宏观基础
-- 跨资产类型回测（20+ 样本）
-- 报告展示层优化
+👉 **完整设计规格见 [`RFC_v0.3.md`](./RFC_v0.3.md)**
+
+- Digital Asset 顶层抽象：Profile + Market Regime 双路输入
+- 4 大信号轴：Attention / On-chain / Fundamental / Macro
+- Market Regime：Bull / Range / Bear / Crisis（6 信号合成，FRED + Coinalyze 接入）
+- Phase 8 阶段：Stealth → Expansion → Late Expansion → Peak → Drawdown → Decay → Recovery → Re-accumulation（含 Regime 强制降级：熊市中的 Late Expansion → 直接 Peak）
+- Divergence：z-score 跨轴背离，6 类预置（Attention > Liquidity 等）
+- 完全向后兼容（v0.2 的 37 个测试无修改通过，新增 ≥ 25 测试）
 
 完整 MIT License——见 [LICENSE](LICENSE)。
