@@ -1,12 +1,17 @@
 # attention-market
 
-**Attention Market Intelligence · v0.2 通用化版 · v0.3 RFC 待审**
+[![v0.3.0](https://img.shields.io/badge/release-v0.3.0-blue)](https://github.com/ZoranAop/Attention-Market-Intelligence/releases/tag/v0.3.0)
+[![tests](https://img.shields.io/badge/tests-82%2F82%20passing-brightgreen)]()
+[![python](https://img.shields.io/badge/python-3.9%2B-blue)]()
+[![license](https://img.shields.io/badge/license-MIT-green)]()
 
-> 一个开源的注意力市场分析框架，用于研究注意力如何转化为参与、行为、市场活动、价值与风险。
+**Attention Market Intelligence · v0.3 · Digital Asset Intelligence Framework**
+
+> An open-source Digital Asset Intelligence framework for measuring how attention, adoption, capital, network activity, and market behavior interact across crypto assets.
 >
-> v0.2 起，框架从「MEME 币专用」升级为「通用金融资产生成式分析框架（UFAM）」——MEME 币降为<strong>众多资产类型中的一个具体案例</strong>，配合稳定币 / L1 / DeFi / 证券 / 未知 5 种画像。
+> v0.3 起，框架从「MEME 币专用」升级为**通用数字资产智能框架（Digital Asset Intelligence）**——Profile + Market Regime 双路输入，4 大信号轴（Attention / On-chain / Fundamental / Macro），8 阶段 Phase，z-score 跨轴 Divergence。**82/82 测试通过，完全向后兼容 v0.2**。
 >
-> 📄 **v0.3 RFC 已发布**：[`RFC_v0.3.md`](./RFC_v0.3.md) —— 框架将升级为 **Digital Asset Intelligence Framework**：Profile + Market Regime 双路输入，4 大信号轴（Attention / On-chain / Fundamental / Macro），8 阶段 Phase（Stealth → Expansion → Late Expansion → Peak → Drawdown → Decay → Recovery → Re-accumulation），z-score 跨轴 Divergence。完全向后兼容。
+> 📄 完整设计规格：[`RFC_v0.3.md`](./RFC_v0.3.md) · 发布说明：[`RELEASE_v0.3.0.md`](./RELEASE_v0.3.0.md)
 
 ---
 
